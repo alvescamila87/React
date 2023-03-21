@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 
 import './style.css'
 
@@ -6,11 +6,48 @@ import { Card } from '../../components/Card'
 
 export function Home() {
 
-  const [studentName, setStudentName] = useState()
+  const [studentName, setStudentName] = useState('')
+  const [students, setStudents] = useState([])
+  const [user, setUser] = useState({name: '', avatar: '' })
+
+  // criando estudante
+  function handleAddStudent() {
+    const newStudent = {
+      name: studentName,
+      time: new Date().toLocaleTimeString("pt-br", {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })
+    };
+
+    // adicionando estudantes e guardando estado anterior
+    setStudents(prevState => [...prevState, newStudent]);
+  }
+
+  useEffect(() => {
+    fetch('https://api.github.com/users/alvescamila87')
+    .then(response => response.json())
+    .then(data => { 
+      setUser({
+        name: data.name,
+        avatar: data.avatar_url,
+      })
+    })
+    .catch(error => console.error(error))
+  }, []);
  
   return (
     <div className='container'>
-      <h1>Nome: {studentName}</h1>
+      <header>
+        <h1>Lista de presença </h1>
+        <div>
+          <strong>{user.name}</strong>
+          <img src={user.avatar} alt="Foto de perfil" />
+        </div>
+
+      </header>
+      
 
       <input 
         type="text" 
@@ -18,12 +55,20 @@ export function Home() {
         onChange={event => setStudentName(event.target.value)}
       />
 
-      <button type="button">Adicionar</button>
+      <button type="button" onClick={handleAddStudent}>
+        Adicionar
+      </button>
 
-      <Card name="Camila" time="10:55:25" />
-      <Card name="Isabel" time="11:00:10" />
-      <Card name="Karoline" time="11:05:10" />
-      <Card name="Paulo" time="12:35:00" />
+      
+      { 
+      students.map(student => (
+        <Card 
+          key={student.time}
+          name={student.name} 
+          time={student.time} 
+        />
+      ))
+      }
     </div>
   )
 }
